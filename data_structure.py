@@ -587,10 +587,6 @@ mylist.index(4)
 mylist.pop(1)
         
 
-def permutaation(array,begin,end):
-    
-    array[end],array[begin]=array[begin],array[end]
-    permutaation(array,begin,end)z
 
 
 
