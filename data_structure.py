@@ -471,7 +471,7 @@ class UnorderedList:
     
     def remove(self,item):
         current=self.head
-        prevous=None
+        previous=None
         found=False
         while not found:
             if current.getdata()==item:
