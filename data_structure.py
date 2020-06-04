@@ -1501,6 +1501,191 @@ r.insert_right('c')
 r.getrightchild().setrootval('hello')
 r.getleftchild().insert_right('d')
         
+######
+#将树用表示于语言中的句子，可以分析句子中的各种语法成分。nlp
+#表达解析式，用叶节点保存操作数，内部节点保存操作符
+#越靠近叶节点，优先级越高
+class Stack: # push pop O(1)
+    def __init__(self):
+        self.item=[]
+    def isEmpty(self):
+        return self.item==[]
+    def push(self,new):
+        return self.item.append(new)
+    def pop(self):
+        return self.item.pop()
+    def peek(self):
+        return self.item[-1]
+    def size(self):
+        return len(self.item)
+    
+def buildparseTree(fpexp):
+    fplist=fpexp.split()
+    pstack=Stack()
+    etree=binaryTree('')
+    pstack.push(etree)
+    currenttree=etree
+    for i in fplist:
+        if i =='(':
+            currenttree.insert_left('')
+            pstack.push(currenttree)
+            currenttree=currenttree.getleftchild()
+        elif i not in ['+','-','*','/',')']:
+            currenttree.setrootval(int(i))
+            parent=pstack.pop()
+            currenttree=parent
+        elif  i in ['+','-','*','/'] :
+            currenttree.setrootval(i)
+            currenttree.insert_right('')
+            pstack.push(currenttree)
+            currenttree=currenttree.getrightchild()
+        elif  i==')':
+            currenttree=pstack.pop()
+        else:
+            raise ValueError
+    return etree
+#求值
+import operator
+def evaluate(parsetree):
+    opers={'+':operator.add,'-':operator.sub,'*':operator.mul,'/':operator.truediv}
+    leftC=parsetree.getleftchild()
+    rightC=parsetree.getrightchild()
+    
+    if leftC and rightC:
+        fn=opers[parsetree.getrootval()]
+        return fn(evaluate(leftC),evaluate(rightC))
+    else:
+        return parsetree.getrootval()
+fpexp='( ( 7 + 3 ) * ( 5 - 2 ) )'           
+a= buildparseTree(fpexp)
+evaluate(a)
+def postordereval(tree):
+    opers={'+':operator.add,'-':operator.sub,'*':operator.mul,'/':operator.truediv}
+    va1=None
+    va2=None
+    if tree:
+        va1=postordereval(tree.getleftchild())
+        va2=postordereval(tree.getrightchild())
+        if va1 and va2:
+            return opers[tree.getrootval()](va1,va2)
+        else:
+            return tree.getrootval()
+postordereval(a)
+
+def printinorder(tree):
+    out=''
+    if tree:
+        if tree.getrootval() in [0,1,2,3,4,5,6,7,8,9]:
+            out=printinorder(tree.getleftchild())
+        else:
+            out='('+printinorder(tree.getleftchild())
+            
+        out=out+str(tree.getrootval())
+        if tree.getrootval() in [0,1,2,3,4,5,6,7,8,9]:
+            out=out+printinorder(tree.getrightchild())
+        else:
+            out=out+printinorder(tree.getrightchild())+')'
+    return out
+printinorder(a)
+#####树的遍历（非线性结构）
+#1.前序遍历preorder: 先访问根节点，再递归的前序访问左子树，最后访问右子树：与看书顺序类似
+#2.中序遍历inorder:先递归的中序访问左子树，在访问根节点，再中序访问右子树
+#3.后续遍历postorder:先递归的后续访问左子树，再访问右子树，最后访问根节点
+
+def preorder(tree):
+    if tree:
+        print(tree.getrootval())
+        preorder(tree.getleftchild())
+        preorder(tree.getrightchild())
+preorder(a)
+
+def inorder(tree):
+    if tree:
+        preorder(tree.getleftchild())
+        print(tree.getrootval())
+        preorder(tree.getrightchild())
+inorder(a)
+
+def postorder(tree):
+    if tree:
+        preorder(tree.getleftchild())
+        preorder(tree.getrightchild())
+        print(tree.getrootval())
+postorder(a)
+
+
+####优先队列 Priority Queue(VIP)
+#高优先级的数据项排在队首，低优先级往后排
+#出队都是以队首先出
+#二叉堆（Binary Heap）:保持入队出队复杂度都是O(logN)
+#逻辑结构像二叉树，但其实使用非嵌套的列表实现
+#最小的key(优先级最高的)放于队首，min heap
+
+#对数水平：二叉树  始终保持在对数水平：平衡二叉树（树根左右子树拥有的相同数量的节点）
+#第k层：个数2^k-1
+#完全二叉树来近似平衡二叉树
+
+####完全二叉树：叶节点最多只出现再底层和次底层，而且最底层的叶节点都连续集中在最左边，
+#每个内部节点都有两个子节点，最多可有一个节点例外。
+#从1计为根节点，则一个节点下表为p，左子节点2P,右子节点2P+1,父节点P//2
+
+##堆次序：Heap order
+#任何一个节点，其父节点的key小于x中的key(根节点key最小)（部分有序）
+
+class biheap:
+    def __init__(self):
+        self.heaplist=[0]#保留index=0
+        self.currentsize=0
+    def insert(self,new):#插入到最下层的最右端，但是会破坏堆次序，故对该路径进行上浮，不影响其他路径的次序
+        self.heaplist.append(new)
+        self.currentsize+=1
+        self.percUp(self.currentsize)
+    def percUp(self,i):
+        flag=False
+        while i>0 and not flag:
+            if self.heaplist[i]<self.heaplist[i//2]:
+                flag=True#上一层没有改变则停止
+                self.heaplist[i],self.heaplist[i//2]=self.heaplist[i//2], self.heaplist[i]
+            i=i//2
+    def delMin(self):  #pop出根节点（最小的key）,选择最下一层最右边的值进行替换root，当需要下沉直到比所有的子节点都小,选择较小的子节点进行下沉
+        retri=self.heaplist[1]
+        self.heaplist[1]=self.heaplist[self.currentsize]
+        self.currentsize=self.currentsize-1
+        self.heaplist.pop()
+        self.percDown(1)
+        return retri
+    def percDown(self,i):
+        while i*2<=self.currentsize:
+            new=self.minchild(i)
+            if self.heaplist[i]>self.heaplist[new]:
+                self.heaplist[i],self.heaplist[new]=self.heaplist[new],self.heaplist[i]
+            i=new
+    def minchild(self,i):
+        if i*2+1>self.currentsize:
+            return i*2
+        else:
+            if self.heaplist[i*2]>self.heaplist[2*i+1]:
+                return 2*i+1
+            else:
+                return 2*i
+    def buildHeap(self,list): #若逐个insert入堆中，时间复杂度O(NlogN),下沉法O(logN))，直接将list视为一个堆，则只需对父节点进行下沉
+        i=len(list)//2   #最后一个父节点
+        self.currentsize=len(list) #有0
+        self.heaplist=[0]+list[:]
+        print(len(self.heaplist),i)
+        while i>0:
+            print(self.heaplist,i)            
+            self.percDown(i)
+            i-=1
+        print(self.heaplist,i)
+bn=biheap()
+bn.insert(5)
+bn.insert(7)
+bn.insert(3)
+bn.insert(11)
+print(bn.delMin())
+bn.buildHeap([3,2,4,6,3,1,2,7,8,6,3,])
+
 
 
 
