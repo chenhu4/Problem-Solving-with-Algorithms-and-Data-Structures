@@ -1685,6 +1685,114 @@ bn.insert(3)
 bn.insert(11)
 print(bn.delMin())
 bn.buildHeap([3,2,4,6,3,1,2,7,8,6,3,])
+####二叉查找树
+#比父节点小的key都出现在左子树，比父节点大的key都出现在右字数
+#插入顺序不同，二叉查找树也不同
+
+class BinarySearchTree:
+    def __init__(self):
+        self.root=None
+        self.size=0
+    def length(self):
+        return self.size
+    def __len__(self):
+        return self.size
+    def __iter__(self):
+        return self.root.__iter__()
+    def put(self,key,val):
+        if self.root: #非空，调用_put
+            self._put(key,val,self.root)
+        else:#空
+            self.root=TreeNode(key,val)
+            self.size=self.size+1
+    def _put(self,key,val,currentnode):
+        if key<currentnode.key:#递归左子树
+            if currentnode.hasleftchild():
+                self._put(key,val,currentnode.leftchild)
+            else:
+                currentnode.leftchild=TreeNode(key,val,parent=currentnode)
+        else:#递归右子树
+            if currentnode.hasrightchild():
+                self._put(key,val,currentnode.rightchild)
+            else:
+                currentnode.rightchild=TreeNode(key,val,parent=currentnode)
+    def __setitem__(self,k,v):
+        self.put(k,v)
+    def get(self,key):
+        if self.root:
+            res=self._get(key,self.root)
+            if res:
+                return res.payload
+            else:
+                return None
+        else:
+            return None
+    def _get(self,key,currentnode):
+        if not currentnode:
+            return None
+        elif currentnode.key==key:
+            return currentnode
+        elif key<currentnode.key:
+            return self._get(key,currentnode.leftchild)
+        else:
+            return self._get(key,currentnode.rightchild)
+        def __getitem__(self,key):
+            return self.get(key)
+        def __contains__(self,key):
+            if self._get(key):
+                return True
+            else:
+                return False
+        def __iter__(self):
+            if self:
+                if self.hasleftchild():
+                    for elem in self.leftchild:#递归调用，实际上是递归函数，yield是每次迭代的返回值
+                        yield elem
+                yield self.key
+                if self.hasrightchild():
+                    for elem in self.rightchild:
+                        yield elem
+class TreeNode:
+    def __init__(self,key,val,left=None,right=None,parent=None):
+        self.key=key
+        self.payload=val
+        self.leftchild=left
+        self.rightchild=right
+        self.parent=parent
+    def hasleftchild(self):
+        return self.leftchild
+    def hasrightchild(self):
+        return self.rightchild
+    def isleftchild(self):
+        return self.parent and self.parent.leftchild==self
+    def isrightchild(self):
+        return self.parent and self.parent.rightchild==self
+    def isroot(self):
+        return not self.parent
+    def isleaf(self):
+        return not (self.leftchild or self.rightchild)
+    def hasanychildren(self):
+        return self.leftchild or self.rightchild
+    def hasbothchildren(self):
+        return self.leftchild and self.rightchild
+    def replacenodedata(self,key,value,lc,rc): #整个更换
+        self.key=key
+        self.payload=value
+        self.leftchild=lc
+        self.rightchild=rc
+        if self.hasleftchild():
+            self.leftchild.parent=self
+        if self.hasrightchild():
+            self.leftchild.parent=self        
+
+
+tree=BinarySearchTree()
+tree[3]='red'
+tree[4]='blue'
+tree[6]='yellow'
+tree[2]='at'
+
+
 
 
 
